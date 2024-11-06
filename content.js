@@ -1,9 +1,8 @@
-// Variable globale pour stocker l'état de l'option
 let isProcessing = false;
 let pendingUpdate = false;
 
 function isAlreadyTranslated(text) {
-    // Improved check for already translated text with a strict pattern to avoid redundant translations
+    // check si deja traduit
     return /\(.*?🇫🇷\)/.test(text);
 }
 
@@ -62,7 +61,7 @@ function findAndTranslatePokemonNames() {
         let modified = false;
         
         for (const [englishName, frenchName] of pokemonTranslations.entries()) {
-            const regex = new RegExp(`\\b${englishName}(?! \\(.*?🇫🇷\\))\\b`, 'g');
+            const regex = new RegExp(`\\b${englishName}(?! \\(.*?🇫🇷\\))\\b`, 'gi');
             
             if (regex.test(text)) {
                 text = text.replace(regex, `${englishName} (${frenchName} 🇫🇷)`);
@@ -140,7 +139,7 @@ const observer = new MutationObserver((mutations) => {
                 let modified = false;
 
                 for (const [englishName, frenchName] of pokemonTranslations.entries()) {
-                    const regex = new RegExp(`\\b${englishName}(?! \\(.*?🇫🇷\\))\\b`, 'g');
+                    const regex = new RegExp(`\\b${englishName}(?! \\(.*?🇫🇷\\))\\b`, 'gi');
                     if (regex.test(text)) {
                         text = text.replace(regex, `${englishName} (${frenchName} 🇫🇷)`);
                         modified = true;
@@ -155,7 +154,7 @@ const observer = new MutationObserver((mutations) => {
     }
 });
 
-// Start observing for relevant changes
+// Demarre l'observer sur les changements pertinents
 observer.observe(document.body, {
     childList: true,
     subtree: true,
