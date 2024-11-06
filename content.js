@@ -1,22 +1,9 @@
 // Variable globale pour stocker l'état de l'option
-let shouldTranslateSimilar = false;
 let isProcessing = false;
 let pendingUpdate = false;
 
-// Charge l'état initial
-browser.storage.local.get('translateSimilar').then(result => {
-    shouldTranslateSimilar = result.translateSimilar || false;
-});
-
 function isAlreadyTranslated(text) {
     return text.includes("🇫🇷");
-}
-
-function shouldTranslatePokemon(englishName, frenchName) {
-    if (shouldTranslateSimilar) {
-        return true;
-    }
-    return englishName !== frenchName;
 }
 
 // Fonction throttle pour limiter la fréquence d'exécution
@@ -107,14 +94,6 @@ function findAndTranslatePokemonNames() {
 
 // Version debounced de findAndTranslatePokemonNames
 const debouncedTranslate = debounce(findAndTranslatePokemonNames, 250);
-
-// Écoute les messages du popup
-browser.runtime.onMessage.addListener((message) => {
-    if (message.type === 'optionChanged') {
-        shouldTranslateSimilar = message.translateSimilar;
-        debouncedTranslate();
-    }
-});
 
 // Lance la traduction quand la page est chargée
 document.addEventListener('DOMContentLoaded', debouncedTranslate);

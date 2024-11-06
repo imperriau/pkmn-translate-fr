@@ -4,8 +4,6 @@
     "version": "1.0",
     "description": "Ajoute les traductions françaises des noms de Pokémon",
     "permissions": [
-        "*://*.fandom.com/*",
-        "*://*.wikia.com/*",
         "storage"
     ],
     "icons": {
@@ -17,8 +15,5 @@
             "js": ["translations.js", "content.js"],
             "run_at": "document_end"
         }
-    ],
-    "browser_action": {
-        "default_popup": "popup.html"
-    }
+    ]
 }
