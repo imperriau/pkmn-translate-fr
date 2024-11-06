@@ -40,7 +40,10 @@ function findAndTranslatePokemonNames() {
                     parent.nodeName === 'SCRIPT' ||
                     parent.nodeName === 'STYLE' ||
                     parent.nodeName === 'NOSCRIPT' ||
-                    isAlreadyTranslated(node.textContent)
+                    isAlreadyTranslated(node.textContent) ||
+                    parent.nodeName === 'INPUT' ||
+                    parent.nodeName === 'TEXTAREA' ||
+                    parent.isContentEditable 
                 )) {
                     return NodeFilter.FILTER_REJECT;
                 }
