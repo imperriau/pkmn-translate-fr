@@ -61,7 +61,7 @@ function findAndTranslatePokemonNames() {
         for (const [englishName, frenchName] of Object.entries(pokemonTranslations)) {
             const regex = new RegExp(`\\b${englishName}\\b`, 'g');
             
-            if (regex.test(text) && shouldTranslatePokemon(englishName, frenchName)) {
+            if (regex.test(text)) {
                 text = text.replace(regex, `${englishName} (${frenchName} 🇫🇷)`);
                 modified = true;
             }
