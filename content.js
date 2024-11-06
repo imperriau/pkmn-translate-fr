@@ -3,7 +3,8 @@ let isProcessing = false;
 let pendingUpdate = false;
 
 function isAlreadyTranslated(text) {
-    return text.includes("🇫🇷");
+    // Improved check for already translated text with a strict pattern to avoid redundant translations
+    return /\(.*?🇫🇷\)/.test(text);
 }
 
 // Fonction throttle pour limiter la fréquence d'exécution
@@ -34,7 +35,6 @@ function findAndTranslatePokemonNames() {
         NodeFilter.SHOW_TEXT,
         {
             acceptNode: function(node) {
-                // Ignore les noeuds de script et de style
                 const parent = node.parentNode;
                 if (parent && (
                     parent.nodeName === 'SCRIPT' ||
@@ -61,8 +61,8 @@ function findAndTranslatePokemonNames() {
         let text = node.textContent;
         let modified = false;
         
-        for (const [englishName, frenchName] of Object.entries(pokemonTranslations)) {
-            const regex = new RegExp(`\\b${englishName}\\b`, 'g');
+        for (const [englishName, frenchName] of pokemonTranslations.entries()) {
+            const regex = new RegExp(`\\b${englishName}(?! \\(.*?🇫🇷\\))\\b`, 'g');
             
             if (regex.test(text)) {
                 text = text.replace(regex, `${englishName} (${frenchName} 🇫🇷)`);
@@ -103,22 +103,62 @@ document.addEventListener('DOMContentLoaded', debouncedTranslate);
 
 // Relance la traduction lors des modifications dynamiques du DOM
 const observer = new MutationObserver((mutations) => {
-    // Vérifie rapidement s'il y a des modifications pertinentes
-    const hasRelevantChanges = mutations.some(mutation => {
-        return Array.from(mutation.addedNodes).some(node => {
-            return node.nodeType === Node.TEXT_NODE || 
-                   (node.nodeType === Node.ELEMENT_NODE && 
-                    !['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(node.nodeName));
+    const nodesToProcess = [];
+
+    mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                nodesToProcess.push(node);
+            } else if (node.nodeType === Node.ELEMENT_NODE && 
+                       !['SCRIPT', 'STYLE', 'NOSCRIPT', 'INPUT', 'TEXTAREA'].includes(node.nodeName) && 
+                       !node.isContentEditable) {
+                const walker = document.createTreeWalker(
+                    node,
+                    NodeFilter.SHOW_TEXT,
+                    {
+                        acceptNode: function(subNode) {
+                            if (isAlreadyTranslated(subNode.textContent)) {
+                                return NodeFilter.FILTER_REJECT;
+                            }
+                            return NodeFilter.FILTER_ACCEPT;
+                        }
+                    }
+                );
+
+                let textNode;
+                while (textNode = walker.nextNode()) {
+                    nodesToProcess.push(textNode);
+                }
+            }
         });
     });
-    
-    if (hasRelevantChanges) {
-        debouncedTranslate();
+
+    if (nodesToProcess.length > 0) {
+        requestAnimationFrame(() => {
+            nodesToProcess.forEach(node => {
+                let text = node.textContent;
+                let modified = false;
+
+                for (const [englishName, frenchName] of pokemonTranslations.entries()) {
+                    const regex = new RegExp(`\\b${englishName}(?! \\(.*?🇫🇷\\))\\b`, 'g');
+                    if (regex.test(text)) {
+                        text = text.replace(regex, `${englishName} (${frenchName} 🇫🇷)`);
+                        modified = true;
+                    }
+                }
+
+                if (modified) {
+                    node.textContent = text;
+                }
+            });
+        });
     }
 });
 
+// Start observing for relevant changes
 observer.observe(document.body, {
     childList: true,
     subtree: true,
-    characterData: false // On n'observe pas les changements de texte
+    characterData: true,
+    characterDataOldValue: false
 });
