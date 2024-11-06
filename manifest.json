@@ -1,0 +1,24 @@
+{
+    "manifest_version": 2,
+    "name": "Pokemon Translator",
+    "version": "1.0",
+    "description": "Ajoute les traductions françaises des noms de Pokémon",
+    "permissions": [
+        "*://*.fandom.com/*",
+        "*://*.wikia.com/*",
+        "storage"
+    ],
+    "icons": {
+        "48": "icons/pkmnfr-48.png"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["translations.js", "content.js"],
+            "run_at": "document_end"
+        }
+    ],
+    "browser_action": {
+        "default_popup": "popup.html"
+    }
+}
